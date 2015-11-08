@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>html5后台管理系统</title>
+	<link rel="stylesheet" type="text/css" href="themes/icon.css">
+	<link rel="stylesheet" type="text/css" href="themes/bootstrap/easyui.css">
+	<script type="text/javascript" src="js/jquery-2.1.3.min.js"></script>
+	<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
+	<style type="text/css">
+	*{
+		margin: 0;
+		padding: 0;
+	}
+	html,body{
+		height: 100%;
+	}
+	</style>
+</head>
+<body>
+	<table id="dg" class="easyui-datagrid"
+		toolbar="#toolbar"
+		rownumbers="true" fitColumns="true" singleSelect="true" width="90%" style="overflow: hidden">
+		 <thead width="90%">
+	        <tr width="90%">
+	            <th style="width: 18%" data-options="field:'c_id'">商品id</th>
+	            <th style="width: 18%" data-options="field:'title'">商品名称</th>
+	            <th style="width: 18%" data-options="field:'desc'">描述</th>
+	            <th style="width: 18%" data-options="field:'img'">图片路径</th>
+	            <th style="width: 18%" data-options="field:'price'">价格</th>
+	        </tr>
+    	</thead>
+</table>
+<div id="dlg" class="easyui-dialog" style="width:400px;height:280px;padding:10px 20px"
+		closed="true" buttons="#dlg-buttons">
+	<form id="fm" method="post">
+	    <table>
+			<tr><td style="width: 45%;text-align: left"><label>商品id</label></td><td><input name="c_id" class="easyui-validatebox" ></td></tr>
+		</table>
+		<table>
+			<tr><td style="width: 45%;text-align: left"><label>商品名称</label></td><td><input name="title" class="easyui-validatebox" ></td></tr>
+		</table>
+		<table>
+			<tr><td style="width: 45%;text-align: left"><label>描述</label></td><td><input name="desc" class="easyui-validatebox" ></td></tr>
+		</table>
+		<table>
+			<tr><td style="width: 45%;text-align: left"><label>图片</label></td><td><input name="img" class="easyui-validatebox" ></td></tr>
+		</table>
+		<table>
+			<tr><td style="width: 45%;text-align: left"><label>价格</label></td><td><input name="price" class="easyui-validatebox" ></td></tr>
+		</table>
+	</form>
+</div>
+<div id="dlg-buttons">
+	<a href="#" class="easyui-linkbutton" iconCls="icon-ok" onclick="saveUser()">保存</a>
+	<a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')">取消</a>
+</div>
+<div id="toolbar">
+	<a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newUser()">增加商品</a>
+	<a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="destroyUser()">下架处理</a>
+</div>
+</body>
+<script type="text/javascript">
+	  $('#dg').datagrid({
+	  method:"get",
+      url:'../showcommodityServlet',
+      striped:true,
+      onLoadSuccess:function(data){
+    	  console.log(data)
+      }
+ 	  });
+	  /*增加数据结构*/
+	   function newUser() {
+			$('#dlg').dialog('open').dialog('setTitle', '增加商品');
+			$('#fm').form('clear');
+			url = '../insertcommodityServlet';
+		}
+		function destroyUser(){
+			var row = $('#dg').datagrid('getSelected');
+				if (row){
+					$.messager.confirm('Confirm','是否需要删除该商品',function(r){
+						if (r){
+							 $.post('../deletecommodityServlet',{c_id:row.c_id},function(result){
+								if (result.result){
+									$('#dg').datagrid('reload');	// reload the user data
+								} else {
+									$.messager.show({	// show error message
+										title: 'Error',
+										msg: result.errorMsg
+									});
+								}
+							},'json'); 
+						}
+					});
+				}
+		}
+
+		function saveUser(){
+			$('#fm').form('submit',{
+				url: url,
+				onSubmit: function(){
+					return $(this).form('validate');
+				},
+				success: function(result){
+					var result = eval('('+result+')');
+					if (result.errorMsg){
+						$.messager.show({
+							title: 'Error',
+							msg: result.errorMsg
+						});
+					} else {
+						$('#dlg').dialog('close');		// close the dialog
+						$('#dg').datagrid('reload');	// reload the user data
+					}
+				}
+			});
+		}
+</script>
+</html>
